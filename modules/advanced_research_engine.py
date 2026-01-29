@@ -1,6 +1,7 @@
 """
 高级研究引擎 - 最优方案集成
 整合所有最佳技术实现顶级research功能
+采用世界级Prompt工程
 """
 
 import time
@@ -12,6 +13,7 @@ from google import genai
 from .rag_retriever import retrieve_from_knowledge_base
 from .local_reranker import get_reranker
 from .utils import wait_for_interaction_completion
+from .elite_prompts import get_elite_prompt
 
 
 class AdvancedResearchEngine:
@@ -84,29 +86,12 @@ class AdvancedResearchEngine:
                 temperature=0
             )
             
-            # 使用CoT进行更准确的评估
-            evaluation_prompt = f"""你是信息覆盖度评估专家。请使用思维链方法评估知识库对问题的覆盖度。
-
-【问题】
-{query}
-
-【知识库内容】
-{kb_context[:4000]}
-
-【评估步骤】
-1. 分解问题：问题包含哪些关键子问题？
-2. 检查覆盖：每个子问题在知识库中是否有答案？
-3. 计算覆盖度：(已覆盖子问题数 / 总子问题数) × 100
-4. 识别缺口：哪些信息缺失？
-
-【输出格式】（严格遵守）
-覆盖度: [0-100的数字]
-需要外部补充: [是/否]
-信息缺口: [缺失点1; 缺失点2; 缺失点3]
-总结: [一句话]
-置信度: [高/中/低]
-
-现在开始评估："""
+            # 使用世界级Prompt进行精确评估
+            evaluation_prompt = get_elite_prompt(
+                prompt_type='coverage_evaluation',
+                query=query,
+                context=kb_context
+            )
             
             response = llm.invoke(evaluation_prompt)
             result_text = response.content
@@ -353,7 +338,7 @@ class AdvancedResearchEngine:
         query_type: str
     ) -> str:
         """
-        合成最终报告（针对不同查询类型优化）
+        合成最终报告（使用世界级Prompt）
         
         Args:
             query: 研究问题
@@ -373,94 +358,15 @@ class AdvancedResearchEngine:
                 temperature=0.3  # 保持适度创造性
             )
             
-            # 根据查询类型调整prompt
-            if query_type == 'factual':
-                structure_guide = """
-## 📋 核心定义
-[准确的定义和解释]
-
-## 🔍 关键特征
-1. 特征1 - `来源: [XXX]`
-2. 特征2 - `来源: [XXX]`
-
-## 📊 详细说明
-[深入阐述]"""
-            
-            elif query_type == 'comparative':
-                structure_guide = """
-## 📋 对比概览
-[对比对象简介]
-
-## 🔍 核心差异
-| 维度 | 对象A | 对象B |
-|------|-------|-------|
-| 特征1 | XXX | XXX |
-
-## 📊 详细对比分析
-### 维度1: [标题]
-[详细对比] `来源: [XXX]`
-
-### 维度2: [标题]
-[详细对比] `来源: [XXX]`
-
-## 💡 对比结论
-[综合结论]"""
-            
-            else:  # analytical
-                structure_guide = """
-## 📋 执行摘要
-[200字核心要点]
-
-## 🔍 核心发现
-1. **[发现1]**: [详细] `来源: [XXX]`
-2. **[发现2]**: [详细] `来源: [XXX]`
-3. **[发现3]**: [详细] `来源: [XXX]`
-
-## 📊 深度分析
-### [主题1]
-[分析内容] `来源: [XXX]`
-
-### [主题2]
-[分析内容] `来源: [XXX]`
-
-## 💡 结论与建议
-### 核心结论
-1. [结论1]
-2. [结论2]
-
-### 实施建议
-1. **[建议1]**: [方案]
-2. **[建议2]**: [方案]"""
-            
-            synthesis_prompt = f"""你是专业研究报告撰写专家。请生成高质量、结构化的研究报告。
-
-【研究问题】（类型: {query_type}）
-{query}
-
-【主要来源：内部知识库（权重 {kb_weight}%）】
-{kb_context if kb_context else "（知识库无相关内容）"}
-"""
-            
-            if external_info:
-                synthesis_prompt += f"""
-【补充来源：外部研究（权重 {100-kb_weight}%）】
-{external_info}
-"""
-            
-            synthesis_prompt += f"""
-【报告结构】
-{structure_guide}
-
-【质量要求】
-1. ⭐ 以内部知识库为主要依据（{kb_weight}%权重）
-2. 🔗 所有关键论点必须标注来源
-3. 📊 使用数据和事实支撑观点
-4. 🎯 结构清晰，层次分明
-5. 💎 专业但易懂的语言
-6. ✅ 客观中立的立场
-7. 🚀 Emoji适度增强可读性
-
-现在请生成完整报告："""
+            # 使用世界级Prompt模板
+            synthesis_prompt = get_elite_prompt(
+                prompt_type='world_class_synthesis',
+                query=query,
+                context=kb_context,
+                query_type=query_type,
+                kb_weight=kb_weight,
+                external_info=external_info
+            )
             
             response = llm.invoke(synthesis_prompt)
             report = response.content

@@ -1,6 +1,6 @@
 """
-知识库研究助手模块 - v2.0
-集成最优技术方案 + RAG评估 + 智能缓存
+知识库研究助手模块 - v2.1
+集成最优技术方案 + 世界级Prompt工程
 """
 
 from .document_processor import process_uploaded_files, get_vectorstore_stats
@@ -12,6 +12,7 @@ from .utils import init_session_state, clear_session_state
 from .local_reranker import get_reranker, rerank_documents
 from .rag_evaluation import RAGEvaluator, quick_evaluate
 from .query_cache import QueryCache, get_cache
+from .elite_prompts import get_elite_prompt, get_best_prompt_for_query_type
 
 __all__ = [
     'process_uploaded_files',
@@ -28,5 +29,7 @@ __all__ = [
     'RAGEvaluator',
     'quick_evaluate',
     'QueryCache',
-    'get_cache'
+    'get_cache',
+    'get_elite_prompt',
+    'get_best_prompt_for_query_type'
 ]
