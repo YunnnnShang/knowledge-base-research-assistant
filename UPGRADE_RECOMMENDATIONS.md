@@ -106,7 +106,7 @@ chromadb==0.5.30
 ```python
 # Milvus - 云原生高性能
 # GitHub: https://github.com/milvus-io/milvus
-milvus==2.4.0
+pymilvus==2.4.10
 
 # 或 Qdrant - Rust实现，极致性能
 # GitHub: https://github.com/qdrant/qdrant
@@ -238,9 +238,9 @@ cohere==5.15.1
 ```
 
 #### 升级理由
-- **速度**: FastEmbed比LLM重排序快100x
+- **速度**: FastEmbed比LLM Rerank快50-70x（实测约3秒降至45毫秒）
 - **成本**: 本地模型无API调用费用
-- **质量**: 专业reranker模型F1得分提升15-20%
+- **质量**: 专业Reranker模型F1得分提升15-20%
 
 #### 推荐模型
 - `ms-marco-MiniLM-L-12-v2` (轻量级)
@@ -512,7 +512,7 @@ sentence-transformers==3.3.1
 # 速度、成本、质量
 ```
 
-**预期收益**: 重排速度提升100x，成本降低90%
+**预期收益**: Rerank速度提升50-70x，成本降低90%
 
 ---
 

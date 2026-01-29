@@ -263,15 +263,15 @@ scores = model.predict([
 
 | 方案 | 延迟 | 成本 | F1分数 |
 |------|------|------|--------|
-| Gemini Rerank | 3.2s | $0.003 | 0.85 |
+| LLM Rerank (Gemini) | 3.2s | $0.003 | 0.85 |
 | BGE-Reranker-v2-m3 | 45ms | $0 | 0.87 |
 | MS-Marco-MiniLM | 20ms | $0 | 0.82 |
 | FastEmbed | 8ms | $0 | 0.83 |
 | Cohere Rerank | 120ms | $0.001 | 0.89 |
 
 **结论**:
-- **推荐**: 从LLM Reranker迁移到 **BGE-Reranker-v2-m3**
-- **收益**: 速度提升70x，成本降至$0，准确率提升2%
+- **推荐**: 从LLM Rerank迁移到 **BGE-Reranker-v2-m3**
+- **收益**: 速度提升70x（从3.2s到45ms），成本降至$0，准确率提升2%
 
 ---
 

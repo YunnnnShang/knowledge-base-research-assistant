@@ -26,7 +26,7 @@ git checkout -b upgrade-dependencies
 python -m venv venv-upgraded
 source venv-upgraded/bin/activate  # Linux/Mac
 # 或
-venv-upgraded\Scripts\activate  # Windows
+venv-upgraded\Scripts\activate     # Windows
 ```
 
 ---

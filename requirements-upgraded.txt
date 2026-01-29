@@ -64,8 +64,8 @@ mypy==1.14.1                 # 类型检查
 # ========================================
 # 可选：替代向量数据库（仅选择其一）
 # ========================================
-# milvus==2.4.0                 # 高性能向量数据库
-# qdrant-client==1.13.0         # Qdrant向量数据库客户端
+# pymilvus==2.4.10                  # Milvus Python客户端（高性能向量数据库）
+# qdrant-client==1.13.0             # Qdrant向量数据库客户端
 
 # ========================================
 # 安装说明
@@ -81,4 +81,4 @@ mypy==1.14.1                 # 类型检查
 # 性能要求高（替换ChromaDB为Milvus）:
 #   # 先安装Milvus: docker run -d --name milvus -p 19530:19530 milvusdb/milvus:latest
 #   pip install -r requirements-upgraded.txt
-#   pip install milvus pymilvus
+#   pip install pymilvus
