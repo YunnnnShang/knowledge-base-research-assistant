@@ -10,9 +10,14 @@ import streamlit as st
 
 # 文档处理库
 try:
-    import PyPDF2
+    from pypdf import PdfReader  # 升级版PDF处理器
 except ImportError:
-    PyPDF2 = None
+    PdfReader = None
+
+try:
+    import pdfplumber  # 高级表格提取
+except ImportError:
+    pdfplumber = None
 
 try:
     from docx import Document
@@ -25,21 +30,47 @@ from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 def extract_text_from_pdf(file) -> str:
-    """从 PDF 文件提取文本"""
-    if PyPDF2 is None:
-        raise ImportError("请安装 PyPDF2: pip install PyPDF2")
+    """
+    从 PDF 文件提取文本（升级版：使用pypdf和pdfplumber）
+    优先使用pypdf，如果提取质量差则尝试pdfplumber
+    """
+    if PdfReader is None:
+        raise ImportError("请安装 pypdf: pip install pypdf")
     
     try:
-        pdf_reader = PyPDF2.PdfReader(file)
+        # 方法1: 使用pypdf快速提取
+        pdf_reader = PdfReader(file)
         text_parts = []
         
         for page_num, page in enumerate(pdf_reader.pages):
-            text = page.extract_text()
+            text = page.extract_text() or ""
             if text.strip():
-                text_parts.append(f"[Page {page_num + 1}]
-{text}")
+                text_parts.append(f"[Page {page_num + 1}]\n{text}")
         
-        return "\n\n".join(text_parts)
+        full_text = "\n\n".join(text_parts)
+        
+        # 如果提取结果太少，尝试pdfplumber（更精确，尤其对表格）
+        if len(full_text.strip()) < 100 and pdfplumber is not None:
+            file.seek(0)
+            with pdfplumber.open(file) as pdf:
+                plumber_parts = []
+                for page_num, page in enumerate(pdf.pages):
+                    text = page.extract_text() or ""
+                    if text.strip():
+                        plumber_parts.append(f"[Page {page_num + 1}]\n{text}")
+                    
+                    # 同时提取表格
+                    tables = page.extract_tables()
+                    if tables:
+                        for table_num, table in enumerate(tables):
+                            table_text = "\n".join(["\t".join(str(cell) or "" for cell in row) for row in table])
+                            plumber_parts.append(f"[Table {table_num + 1}]\n{table_text}")
+                
+                if plumber_parts:
+                    full_text = "\n\n".join(plumber_parts)
+        
+        return full_text
+        
     except Exception as e:
         raise Exception(f"PDF 处理错误: {str(e)}")
 
@@ -121,12 +152,33 @@ def process_uploaded_files(files, api_key: str):
                 st.warning(f"文件为空或无法提取文本: {file_name}")
                 continue
             
-            # 文本分块
+            # 文本分块（优化版：根据文档类型和语言自适应）
+            chunk_size = 1500  # 增加到1500（推荐）
+            chunk_overlap = 300  # 20%重叠
+            
+            # 针对中文优化的分隔符
             text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=1000,
-                chunk_overlap=200,
-                separators=["\n\n", "\n", "。", "！", "？", ".", "!", "?", " ", ""],
-                length_function=len
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+                separators=[
+                    "\n\n\n",  # 段落间空行
+                    "\n\n",    # 双换行
+                    "\n",      # 单换行
+                    "。",      # 中文句号
+                    "！",      # 中文感叹号
+                    "？",      # 中文问号
+                    "；",      # 中文分号
+                    "，",      # 中文逗号
+                    ".",       # 英文句号
+                    "!",       # 英文感叹号
+                    "?",       # 英文问号
+                    ";",       # 英文分号
+                    ",",       # 英文逗号
+                    " ",       # 空格
+                    ""         # 字符
+                ],
+                length_function=len,
+                is_separator_regex=False
             )
             
             chunks = text_splitter.split_text(text)
@@ -162,14 +214,25 @@ def process_uploaded_files(files, api_key: str):
     
     # 创建向量数据库
     try:
+        from config import CHROMADB_CONFIG
+        
         # 使用临时目录
         persist_directory = tempfile.mkdtemp(prefix="chroma_")
+        
+        # 创建优化的collection设置
+        collection_metadata = {
+            "hnsw:space": CHROMADB_CONFIG.get("hnsw_space", "cosine"),
+            "hnsw:construction_ef": CHROMADB_CONFIG.get("hnsw_construction_ef", 200),
+            "hnsw:search_ef": CHROMADB_CONFIG.get("hnsw_search_ef", 50),
+            "hnsw:M": CHROMADB_CONFIG.get("hnsw_M", 16),
+        }
         
         vectorstore = Chroma.from_texts(
             texts=[doc["content"] for doc in documents],
             metadatas=[doc["metadata"] for doc in documents],
             embedding=embeddings,
-            persist_directory=persist_directory
+            persist_directory=persist_directory,
+            collection_metadata=collection_metadata
         )
         
         return vectorstore

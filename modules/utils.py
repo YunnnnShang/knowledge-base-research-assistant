@@ -4,8 +4,11 @@
 """
 
 import time
+import logging
 import streamlit as st
 from google import genai
+
+logger = logging.getLogger(__name__)
 
 
 def init_session_state():
@@ -84,7 +87,8 @@ def wait_for_interaction_completion(
         progress_bar.empty()
         status_text.empty()
         return interaction
-    except:
+    except Exception as e:
+        logger.error(f"获取交互结果失败: {str(e)}", exc_info=True)
         progress_bar.empty()
         status_text.empty()
         return None
