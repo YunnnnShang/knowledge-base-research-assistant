@@ -5,6 +5,23 @@
 
 ---
 
+## 🚨 安全警告
+
+**紧急**: 当前项目使用的LangChain依赖存在**严重安全漏洞**：
+
+| 漏洞 | 影响版本 | 风险等级 | 修复版本 |
+|------|---------|---------|---------|
+| **XXE攻击** | langchain-community < 0.3.27 | 🔴 高危 | 0.3.27+ |
+| **模板注入** | langchain-core <= 0.3.79 | 🔴 高危 | 0.3.80+ |
+| **序列化注入** | langchain-core < 0.3.81 | 🔴 高危 | 0.3.81+ |
+
+**强烈建议立即升级**到推荐的安全补丁版本（见下文），以避免：
+- XML外部实体攻击（XXE）导致的敏感信息泄露
+- 模板注入攻击导致的任意代码执行
+- 序列化漏洞导致的密钥泄露
+
+---
+
 ## 🎯 执行摘要
 
 本报告对当前项目进行了全面分析，识别了**7个关键升级领域**，并推荐了**GitHub上最新的开源技术方案**。预期收益包括：性能提升30-50%、更强的功能性、更好的稳定性和安全性。
@@ -28,7 +45,7 @@
 |---------|---------|------|------|
 | **前端框架** | streamlit ≥1.28.0 | Web UI | ⚠️ 需要升级 |
 | **LLM SDK** | google-genai ≥1.55.0 | Gemini API | ✅ 较新 |
-| **RAG框架** | langchain ≥0.1.0 | LLM编排 | 🔴 严重过时 |
+| **RAG框架** | langchain ≥0.1.0 | LLM编排 | 🔴 严重过时 + 安全漏洞 |
 | **向量数据库** | chromadb ≥0.4.22 | 语义搜索 | ⚠️ 需要升级 |
 | **文档处理** | PyPDF2 ≥3.0.1 | PDF解析 | ⚠️ 有更好替代 |
 | **文档处理** | unstructured ≥0.11.0 | 多格式解析 | ⚠️ 快速迭代中 |
@@ -64,8 +81,8 @@ langchain-community>=0.0.13
 ```python
 langchain==0.3.16
 langchain-google-genai==2.0.9
-langchain-community==0.3.16
-langchain-core==0.3.42
+langchain-community==0.3.27   # 安全补丁版本（修复XXE漏洞）
+langchain-core==0.3.81        # 安全补丁版本（修复模板注入和序列化注入）
 ```
 
 #### 升级理由
@@ -73,6 +90,7 @@ langchain-core==0.3.42
 - **新特性**: LangChain Expression Language (LCEL) 支持
 - **稳定性**: 修复了100+个已知bug
 - **API改进**: 更直观的RAG pipeline配置
+- **安全性**: 修复XXE攻击、模板注入和序列化注入漏洞（关键！）
 
 #### 影响模块
 - `modules/rag_retriever.py`
@@ -449,14 +467,14 @@ pytest tests/
 
 ---
 
-### 阶段2: LangChain生态升级（2周）⚠️ 中风险
+### 阶段2: LangChain生态升级（2周）⚠️ 中风险 🔴 包含关键安全补丁
 
 ```bash
-# 1. 升级LangChain全家桶
+# 1. 升级LangChain全家桶（包含安全补丁）
 langchain==0.3.16
 langchain-google-genai==2.0.9
-langchain-community==0.3.16
-langchain-core==0.3.42
+langchain-community==0.3.27   # 修复XXE攻击漏洞
+langchain-core==0.3.81        # 修复模板注入和序列化注入漏洞
 
 # 2. 重构受影响模块
 # - modules/rag_retriever.py

@@ -13,8 +13,8 @@ google-genai>=1.55.0         # Google Gemini API
 # ========================================
 langchain==0.3.16            # LLM应用框架 (从 >=0.1.0 升级)
 langchain-google-genai==2.0.9  # Google集成 (从 >=0.0.6 升级)
-langchain-community==0.3.16   # 社区集成 (从 >=0.0.13 升级)
-langchain-core==0.3.42       # LangChain核心 (新增)
+langchain-community==0.3.27   # 社区集成 (从 >=0.0.13 升级) - 安全补丁版本
+langchain-core==0.3.81       # LangChain核心 (新增) - 安全补丁版本
 
 # ========================================
 # 向量数据库
