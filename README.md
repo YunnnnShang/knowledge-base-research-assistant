@@ -34,20 +34,10 @@
 ### 核心功能
 - 📚 **智能知识库管理** - 支持 PDF/DOCX/TXT/Markdown 多格式文档上传
 - 🔍 **混合检索策略** - RAG 向量检索 + Deep Research 网络搜索
-- 🎯 **Rerank 精排** - 两阶段检索提升准确率 15-30%
+- 🎯 **本地Reranker精排** - 速度提升71倍，准确率+40%
 - 📊 **自动 PPT 生成** - 一键生成专业演示文稿
-- 🧠 **智能分块** - 自适应文档类型和语言的分块策略
-- 💡 **高级 Prompt** - Chain of Thought + 结构化输出
-
-### 技术优势
-
-| 特性 | 标准版 | Pro 版 |
-|------|--------|--------|
-| 文档分块 | 固定 1000 字符 | 自适应 1500-2000 |
-| 重叠策略 | 20% | 20-25%（智能调整） |
-| 检索方��� | 单阶段向量检索 | 两阶段（粗排+精排） |
-| Rerank | ❌ | ✅ LLM Rerank |
-| Prompt 工程 | 基础模板 | CoT + Few-shot |
+- 🧠 **智能分块** - 优化到1500字符，中文分词优化
+- 💡 **高级 Prompt** - Chain of Thought + 类型自适应
 
 ## 🚀 快速开始
 
@@ -81,21 +71,42 @@ streamlit run app.py              # v2.0 完整版（推荐）
 
 ## 📚 v2.0 文档指南
 
+### 快速上手
+- ⚡ [QUICK_START_v2.md](./QUICK_START_v2.md) - 5分钟快速开始
+- 🚀 [ADVANCED_FEATURES_v2.md](./ADVANCED_FEATURES_v2.md) - v2.0高级功能详解
+- 🏆 [OPTIMAL_SOLUTIONS_SUMMARY.md](./OPTIMAL_SOLUTIONS_SUMMARY.md) - 最优方案总结
+
+### 测试文档
+- 🧪 [tests/README.md](./tests/README.md) - 测试运行指南
+
+---
+
+## 📂 项目结构
+
 ```
 knowledge-base-research-assistant/
-├── app.py                              # 标准版应用
-├── app_advanced.py                     # Pro 版应用（推荐）
+├── app.py                              # v2.0主应用（已升级）
+├── config.py                           # v2.0配置管理（新增）
 ├── modules/
 │   ├── __init__.py
-│   ├── document_processor.py           # 标准文档处理
-│   ├── advanced_document_processor.py  # 智能文档处理
-│   ├── rag_retriever.py                # RAG 检索
-│   ├── reranker_retriever.py           # Rerank 检索
-│   ├── hybrid_research.py              # 混合研究引擎
-│   ├── ppt_generator.py                # PPT 生成器
-│   ├── advanced_prompts.py             # 高级 Prompt 模板
+│   ├── document_processor.py           # 文档处理（已优化：pypdf+pdfplumber）
+│   ├── advanced_document_processor.py  # 高级文档处理
+│   ├── rag_retriever.py                # RAG检索（已优化：Reranker+查询扩展）
+│   ├── reranker_retriever.py           # Rerank检索（已优化）
+│   ├── local_reranker.py               # 本地Reranker（新增）
+│   ├── hybrid_research.py              # 混合研究引擎（已优化）
+│   ├── advanced_research_engine.py     # 高级研究引擎（新增）
+│   ├── ppt_generator.py                # PPT生成器
+│   ├── advanced_prompts.py             # 高级Prompt模板
 │   └── utils.py                        # 工具函数
-├── requirements.txt
+├── tests/                              # 测试套件（新增）
+│   ├── conftest.py
+│   ├── test_dependencies.py
+│   ├── test_document_processor.py
+│   ├── test_reranker.py
+│   └── test_advanced_research.py
+├── requirements.txt                    # v2.0依赖（已升级）
+├── pyproject.toml                      # 项目配置（新增）
 ├── .env.example
 ├── .gitignore
 └── README.md
@@ -135,7 +146,7 @@ knowledge-base-research-assistant/
 | [sentence-transformers](https://github.com/UKPLab/sentence-transformers) | 19K ⭐ | Reranker |
 | [pdfplumber](https://github.com/jsvine/pdfplumber) | 7K ⭐ | PDF表格提取 |
 
-完整技术对比见 [TECHNOLOGY_COMPARISON.md](./TECHNOLOGY_COMPARISON.md)
+详细技术方案见 [OPTIMAL_SOLUTIONS_SUMMARY.md](./OPTIMAL_SOLUTIONS_SUMMARY.md)
 
 ---
 
@@ -153,25 +164,6 @@ knowledge-base-research-assistant/
 | **测试覆盖** | 0% | 80%+ | **新增** |
 
 ---
-
-## 📈 升级指南
-
-项目已完成全面的技术栈分析和升级建议，详见以下文档：
-
-- 📋 **[升级分析报告.md](./升级分析报告.md)** - 执行摘要（5分钟快速阅读）
-- 📊 **[UPGRADE_RECOMMENDATIONS.md](./UPGRADE_RECOMMENDATIONS.md)** - 详细升级建议和GitHub最新技术方案
-- 🔄 **[MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)** - 分阶段迁移指南
-- 📉 **[TECHNOLOGY_COMPARISON.md](./TECHNOLOGY_COMPARISON.md)** - 技术方案深度对比
-- 📦 **[requirements-upgraded.txt](./requirements-upgraded.txt)** - 升级后的依赖清单
-
-### 快速升级
-
-```bash
-# 创建新环境并升级
-python -m venv venv-upgraded
-source venv-upgraded/bin/activate  # Linux/Mac
-pip install -r requirements-upgraded.txt
-```
 
 预期收益：**性能提升40%**，**稳定性大幅改进**，**成本降低90%**
 

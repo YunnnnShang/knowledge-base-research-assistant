@@ -181,8 +181,7 @@ class PromptTemplates:
     @staticmethod
     def multi_hop_reasoning_prompt(query: str, contexts: List[str]) -> str:
         """多跳推理提示词"""
-        context_text = "\n\n---\n\n".join([f"文档{i+1}:
-{ctx}" for i, ctx in enumerate(contexts)])
+        context_text = "\n\n---\n\n".join([f"文档{i+1}:\n{ctx}" for i, ctx in enumerate(contexts)])
         
         return f"""你是一个逻辑推理专家。请基于多个文档片段进行综合推理来回答问题。
 
