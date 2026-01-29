@@ -185,7 +185,6 @@ knowledge-base-research-assistant/
 
 **v2.1核心升级**:
 - 🏆 [世界级Prompt工程](./PROMPT_ENGINEERING_v2.1.md) - 对标McKinsey/BCG/Gartner
-- 📊 [v2.1迭代详情](./ITERATION_v2.1.md) - RAGAS + 缓存 + ChromaDB优化
 
 ---
 
