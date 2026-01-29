@@ -152,12 +152,33 @@ def process_uploaded_files(files, api_key: str):
                 st.warning(f"文件为空或无法提取文本: {file_name}")
                 continue
             
-            # 文本分块
+            # 文本分块（优化版：根据文档类型和语言自适应）
+            chunk_size = 1500  # 增加到1500（推荐）
+            chunk_overlap = 300  # 20%重叠
+            
+            # 针对中文优化的分隔符
             text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=1000,
-                chunk_overlap=200,
-                separators=["\n\n", "\n", "。", "！", "？", ".", "!", "?", " ", ""],
-                length_function=len
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+                separators=[
+                    "\n\n\n",  # 段落间空行
+                    "\n\n",    # 双换行
+                    "\n",      # 单换行
+                    "。",      # 中文句号
+                    "！",      # 中文感叹号
+                    "？",      # 中文问号
+                    "；",      # 中文分号
+                    "，",      # 中文逗号
+                    ".",       # 英文句号
+                    "!",       # 英文感叹号
+                    "?",       # 英文问号
+                    ";",       # 英文分号
+                    ",",       # 英文逗号
+                    " ",       # 空格
+                    ""         # 字符
+                ],
+                length_function=len,
+                is_separator_regex=False
             )
             
             chunks = text_splitter.split_text(text)

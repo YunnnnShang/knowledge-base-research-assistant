@@ -22,10 +22,11 @@ def hybrid_research(
     api_key: str,
     enable_external: bool = True,
     similarity_threshold: float = 0.7,
-    kb_weight: int = 80
+    kb_weight: int = 80,
+    use_advanced_retrieval: bool = True
 ) -> Dict:
     """
-    执行混合研究：RAG检索 + 可选的Deep Research
+    执行混合研究：RAG检索 + 可选的Deep Research（优化版）
     
     Args:
         query: 研究问题
@@ -34,19 +35,27 @@ def hybrid_research(
         enable_external: 是否启用外部研究
         similarity_threshold: 检索相似度阈值
         kb_weight: 知识库权重
+        use_advanced_retrieval: 是否使用高级检索（Reranker + 查询扩展）
     
     Returns:
         研究结果字典
     """
     
-    # Step 1: RAG 检索
+    # Step 1: RAG 检索（使用高级策略）
     st.info("🔍 Step 1: 从知识库检索相关内容...")
+    
+    if use_advanced_retrieval:
+        st.text("  ✨ 启用高级检索：本地Reranker + 查询扩展")
     
     kb_result = retrieve_from_knowledge_base(
         query=query,
         vectorstore=vectorstore,
         k=8,
-        similarity_threshold=similarity_threshold
+        similarity_threshold=similarity_threshold,
+        use_reranker=use_advanced_retrieval,  # 使用本地Reranker
+        use_query_expansion=use_advanced_retrieval,  # 使用查询扩展
+        use_hyde=False,  # HyDE可选，暂时关闭
+        api_key=api_key
     )
     
     if kb_result['num_chunks'] == 0:
