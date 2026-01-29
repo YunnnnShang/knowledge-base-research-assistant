@@ -6,9 +6,12 @@ GitHub: https://github.com/explodinggradients/ragas (14.5K stars)
 
 from typing import Dict, List, Optional
 import warnings
+import logging
 
 # 抑制RAGAS的警告
 warnings.filterwarnings("ignore", category=FutureWarning)
+
+logger = logging.getLogger(__name__)
 
 
 class RAGEvaluator:
@@ -64,9 +67,9 @@ class RAGEvaluator:
             self.metrics_available = True
             
         except ImportError:
-            print("⚠️ RAGAS未安装，评估功能不可用。运行: pip install ragas")
+            logger.warning("RAGAS未安装，评估功能不可用。运行: pip install ragas")
         except Exception as e:
-            print(f"⚠️ RAGAS初始化失败: {str(e)}")
+            logger.error(f"RAGAS初始化失败: {str(e)}", exc_info=True)
     
     def evaluate_response(
         self,

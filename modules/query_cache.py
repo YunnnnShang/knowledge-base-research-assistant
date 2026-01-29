@@ -6,9 +6,12 @@
 
 import hashlib
 import json
+import logging
 from typing import Optional, Dict, Any
 from datetime import datetime
 import os
+
+logger = logging.getLogger(__name__)
 
 
 class QueryCache:
@@ -47,9 +50,9 @@ class QueryCache:
             self.enabled = True
             
         except ImportError:
-            print("⚠️ diskcache未安装，缓存功能不可用。运行: pip install diskcache")
+            logger.warning("diskcache未安装，缓存功能不可用。运行: pip install diskcache")
         except Exception as e:
-            print(f"⚠️ 缓存初始化失败: {str(e)}")
+            logger.error(f"缓存初始化失败: {str(e)}", exc_info=True)
     
     def _generate_cache_key(self, query: str, **kwargs) -> str:
         """
@@ -105,7 +108,7 @@ class QueryCache:
             return None
             
         except Exception as e:
-            print(f"⚠️ 缓存读取失败: {str(e)}")
+            logger.error(f"缓存读取失败: {str(e)}", exc_info=True)
             return None
     
     def set(self, query: str, result: Dict[Any, Any], **kwargs) -> bool:
@@ -138,7 +141,7 @@ class QueryCache:
             return True
             
         except Exception as e:
-            print(f"⚠️ 缓存写入失败: {str(e)}")
+            logger.error(f"缓存写入失败: {str(e)}", exc_info=True)
             return False
     
     def clear(self) -> bool:
@@ -155,7 +158,7 @@ class QueryCache:
             self.cache.clear()
             return True
         except Exception as e:
-            print(f"⚠️ 缓存清空失败: {str(e)}")
+            logger.error(f"缓存清空失败: {str(e)}", exc_info=True)
             return False
     
     def get_stats(self) -> Dict[str, Any]:
@@ -228,7 +231,7 @@ def cached_query(func):
         # 尝试从缓存获取
         cached_result = cache.get(query, **kwargs)
         if cached_result is not None:
-            print(f"✓ 缓存命中: {query[:50]}...")
+            logger.info(f"缓存命中: {query[:50]}...")
             return cached_result
         
         # 执行实际查询

@@ -4,10 +4,13 @@ RAG 检索模块 - 优化版
 集成本地Reranker、查询扩展、HyDE、缓存等高级技术
 """
 
+import logging
 from typing import List, Dict, Optional
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from .local_reranker import get_reranker
 from .query_cache import get_cache
+
+logger = logging.getLogger(__name__)
 
 # 常量配置
 DEFAULT_NUM_EXPANDED_QUERIES = 2  # 默认扩展查询数量
@@ -131,7 +134,7 @@ def retrieve_from_knowledge_base(
         }
         cached_result = cache.get(query, **cache_key_params)
         if cached_result:
-            print(f"✓ 缓存命中，跳过检索")
+            logger.info(f"缓存命中，跳过检索")
             return cached_result
     
     try:

@@ -3,6 +3,16 @@
 """
 
 # ========================================
+# 模型配置常量
+# ========================================
+MODEL_NAMES = {
+    "embedding": "models/text-embedding-004",      # 向量嵌入模型
+    "evaluation": "gemini-1.5-flash",              # 评估模型（快速）
+    "synthesis": "gemini-1.5-pro",                 # 合成模型（质量）
+    "reranker_default": "BAAI/bge-reranker-v2-m3", # 默认Reranker模型
+}
+
+# ========================================
 # 检索配置
 # ========================================
 RETRIEVAL_CONFIG = {
@@ -144,12 +154,6 @@ def get_config(category: str = "all") -> dict:
     }
     
     if category == "all":
-        return {
-            "retrieval": RETRIEVAL_CONFIG,
-            "document": DOCUMENT_CONFIG,
-            "research": RESEARCH_CONFIG,
-            "performance": PERFORMANCE_CONFIG,
-            "ui": UI_CONFIG,
-        }
+        return configs
     
     return configs.get(category, {})

@@ -6,8 +6,11 @@
 
 import os
 import tempfile
+import logging
 from typing import List, Dict, Optional
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 class AdvancedDocumentProcessor:
     """高级文档处理器（使用 Docling）"""
@@ -29,7 +32,7 @@ class AdvancedDocumentProcessor:
             from docling.document_converter import DocumentConverter
             self.converter = DocumentConverter()
         except ImportError:
-            print("Warning: Docling not installed. Using fallback methods.")
+            logger.warning("Docling not installed. Using fallback methods.")
     
     def process_document(self, file_path: str) -> Dict:
         """
@@ -184,7 +187,7 @@ class AdvancedDocumentProcessor:
                 result = self.process_document(file_path)
                 results.append(result)
             except Exception as e:
-                print(f"处理 {file_path} 失败: {str(e)}")
+                logger.error(f"处理 {file_path} 失败: {str(e)}", exc_info=True)
                 results.append({
                     'text': '',
                     'tables': [],
