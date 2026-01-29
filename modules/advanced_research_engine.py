@@ -10,7 +10,7 @@ import streamlit as st
 from langchain_google_genai import ChatGoogleGenerativeAI
 from google import genai
 
-from .rag_retriever import retrieve_from_knowledge_base
+from .rag_retriever import retrieve_from_knowledge_base, evaluate_coverage
 from .utils import wait_for_interaction_completion
 from .elite_prompts import get_elite_prompt
 
@@ -59,7 +59,7 @@ class AdvancedResearchEngine:
         kb_context: str
     ) -> Dict:
         """
-        高级覆盖度评估（使用更精确的算法）
+        高级覆盖度评估（委托给共享的evaluate_coverage函数）
         
         Args:
             query: 查询文本
@@ -68,80 +68,8 @@ class AdvancedResearchEngine:
         Returns:
             覆盖度评估结果
         """
-        if not kb_context.strip():
-            return {
-                "coverage": 0,
-                "needs_external": True,
-                "gaps": ["知识库中没有相关内容"],
-                "summary": "知识库未找到相关信息，需要外部研究",
-                "confidence": "low"
-            }
-        
-        try:
-            llm = ChatGoogleGenerativeAI(
-                model="gemini-1.5-flash",
-                google_api_key=self.api_key,
-                temperature=0
-            )
-            
-            # 使用世界级Prompt进行精确评估
-            evaluation_prompt = get_elite_prompt(
-                prompt_type='coverage_evaluation',
-                query=query,
-                context=kb_context
-            )
-            
-            response = llm.invoke(evaluation_prompt)
-            result_text = response.content
-            
-            # 解析结果
-            coverage = 50
-            needs_external = True
-            gaps = []
-            summary = ""
-            confidence = "medium"
-            
-            for line in result_text.split('\n'):
-                line = line.strip()
-                if line.startswith('覆盖度:') or line.startswith('覆盖度：'):
-                    try:
-                        coverage = int(''.join(filter(str.isdigit, line)))
-                        coverage = max(0, min(100, coverage))
-                    except (ValueError, TypeError):
-                        pass
-                elif line.startswith('需要外部补充:') or line.startswith('需要外部补充：'):
-                    needs_external = '是' in line
-                elif line.startswith('信息缺口:') or line.startswith('信息缺口：'):
-                    gap_text = line.split(':', 1)[-1].split('：', 1)[-1].strip()
-                    if gap_text and gap_text not in ['无', '无明显缺口']:
-                        gaps = [g.strip() for g in gap_text.split(';') if g.strip()]
-                elif line.startswith('总结:') or line.startswith('总结：'):
-                    summary = line.split(':', 1)[-1].split('：', 1)[-1].strip()
-                elif line.startswith('置信度:') or line.startswith('置信度：'):
-                    conf_text = line.split(':', 1)[-1].split('：', 1)[-1].strip()
-                    if '高' in conf_text:
-                        confidence = "high"
-                    elif '低' in conf_text:
-                        confidence = "low"
-                    else:
-                        confidence = "medium"
-            
-            return {
-                "coverage": coverage,
-                "needs_external": needs_external,
-                "gaps": gaps if gaps else ["部分细节需要补充"],
-                "summary": summary or "知识库提供了部分相关信息",
-                "confidence": confidence
-            }
-            
-        except Exception as e:
-            return {
-                "coverage": 50,
-                "needs_external": True,
-                "gaps": ["无法准确评估"],
-                "summary": f"评估过程出错: {str(e)}",
-                "confidence": "low"
-            }
+        # 使用rag_retriever模块中的共享评估函数
+        return evaluate_coverage(query, kb_context, self.api_key)
     
     def execute_research(
         self,

@@ -266,7 +266,8 @@ def evaluate_coverage(
             "coverage": 0,
             "needs_external": True,
             "gaps": ["知识库中没有相关内容"],
-            "summary": "知识库未找到相关信息，需要外部研究"
+            "summary": "知识库未找到相关信息，需要外部研究",
+            "confidence": "low"
         }
     
     try:
@@ -303,6 +304,7 @@ def evaluate_coverage(
         needs_external = True
         gaps = []
         summary = ""
+        confidence = "medium"
         
         for line in result_text.split('\n'):
             line = line.strip()
@@ -316,16 +318,25 @@ def evaluate_coverage(
                 needs_external = '是' in line
             elif line.startswith('信息缺口:') or line.startswith('信息缺口：'):
                 gap_text = line.split(':', 1)[-1].split('：', 1)[-1].strip()
-                if gap_text and gap_text != '无':
+                if gap_text and gap_text not in ['无', '无明显缺口']:
                     gaps = [g.strip() for g in gap_text.split(';') if g.strip()]
             elif line.startswith('总结:') or line.startswith('总结：'):
                 summary = line.split(':', 1)[-1].split('：', 1)[-1].strip()
+            elif line.startswith('置信度:') or line.startswith('置信度：'):
+                conf_text = line.split(':', 1)[-1].split('：', 1)[-1].strip()
+                if '高' in conf_text:
+                    confidence = "high"
+                elif '低' in conf_text:
+                    confidence = "low"
+                else:
+                    confidence = "medium"
         
         return {
             "coverage": coverage,
             "needs_external": needs_external,
             "gaps": gaps if gaps else ["部分信息需要补充"],
-            "summary": summary or "知识库提供了部分相关信息"
+            "summary": summary or "知识库提供了部分相关信息",
+            "confidence": confidence
         }
         
     except Exception as e:
@@ -333,7 +344,8 @@ def evaluate_coverage(
             "coverage": 50,
             "needs_external": True,
             "gaps": ["无法准确评估"],
-            "summary": f"评估过程出错: {str(e)}"
+            "summary": f"评估过程出错: {str(e)}",
+            "confidence": "low"
         }
 
 
