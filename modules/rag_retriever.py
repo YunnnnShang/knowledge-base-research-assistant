@@ -1,12 +1,13 @@
 """
 RAG 检索模块 - 优化版
 负责从向量数据库检索相关文档
-集成本地Reranker、查询扩展、HyDE等高级技术
+集成本地Reranker、查询扩展、HyDE、缓存等高级技术
 """
 
 from typing import List, Dict, Optional
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from .local_reranker import get_reranker
+from .query_cache import get_cache
 
 
 def expand_query(query: str, api_key: str, num_queries: int = 3) -> List[str]:
@@ -94,6 +95,7 @@ def retrieve_from_knowledge_base(
     use_reranker: bool = True,
     use_query_expansion: bool = False,
     use_hyde: bool = False,
+    use_cache: bool = True,
     api_key: Optional[str] = None
 ) -> Dict:
     """
@@ -107,11 +109,27 @@ def retrieve_from_knowledge_base(
         use_reranker: 是否使用本地Reranker重排序
         use_query_expansion: 是否使用查询扩展
         use_hyde: 是否使用HyDE
+        use_cache: 是否使用缓存
         api_key: API Key（查询扩展和HyDE需要）
     
     Returns:
         包含上下文、来源和元数据的字典
     """
+    # 尝试从缓存获取
+    if use_cache:
+        cache = get_cache()
+        cache_key_params = {
+            "k": k,
+            "threshold": similarity_threshold,
+            "reranker": use_reranker,
+            "expansion": use_query_expansion,
+            "hyde": use_hyde
+        }
+        cached_result = cache.get(query, **cache_key_params)
+        if cached_result:
+            print(f"✓ 缓存命中，跳过检索")
+            return cached_result
+    
     try:
         all_docs = []
         
@@ -205,12 +223,19 @@ def retrieve_from_knowledge_base(
         
         context = "\n\n---\n\n".join(context_parts)
         
-        return {
+        result = {
             "context": context,
             "sources": sources,
             "num_chunks": len(unique_docs),
             "chunks": chunks
         }
+        
+        # 存入缓存
+        if use_cache:
+            cache = get_cache()
+            cache.set(query, result, **cache_key_params)
+        
+        return result
         
     except Exception as e:
         raise Exception(f"检索失败: {str(e)}")

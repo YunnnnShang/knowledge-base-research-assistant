@@ -214,14 +214,25 @@ def process_uploaded_files(files, api_key: str):
     
     # 创建向量数据库
     try:
+        from config import CHROMADB_CONFIG
+        
         # 使用临时目录
         persist_directory = tempfile.mkdtemp(prefix="chroma_")
+        
+        # 创建优化的collection设置
+        collection_metadata = {
+            "hnsw:space": CHROMADB_CONFIG.get("hnsw_space", "cosine"),
+            "hnsw:construction_ef": CHROMADB_CONFIG.get("hnsw_construction_ef", 200),
+            "hnsw:search_ef": CHROMADB_CONFIG.get("hnsw_search_ef", 50),
+            "hnsw:M": CHROMADB_CONFIG.get("hnsw_M", 16),
+        }
         
         vectorstore = Chroma.from_texts(
             texts=[doc["content"] for doc in documents],
             metadatas=[doc["metadata"] for doc in documents],
             embedding=embeddings,
-            persist_directory=persist_directory
+            persist_directory=persist_directory,
+            collection_metadata=collection_metadata
         )
         
         return vectorstore

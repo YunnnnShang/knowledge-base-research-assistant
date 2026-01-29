@@ -1,6 +1,6 @@
 """
 知识库研究助手模块 - v2.0
-集成最优技术方案
+集成最优技术方案 + RAG评估 + 智能缓存
 """
 
 from .document_processor import process_uploaded_files, get_vectorstore_stats
@@ -10,6 +10,8 @@ from .advanced_research_engine import advanced_hybrid_research
 from .ppt_generator import generate_ppt
 from .utils import init_session_state, clear_session_state
 from .local_reranker import get_reranker, rerank_documents
+from .rag_evaluation import RAGEvaluator, quick_evaluate
+from .query_cache import QueryCache, get_cache
 
 __all__ = [
     'process_uploaded_files',
@@ -22,5 +24,9 @@ __all__ = [
     'init_session_state',
     'clear_session_state',
     'get_reranker',
-    'rerank_documents'
+    'rerank_documents',
+    'RAGEvaluator',
+    'quick_evaluate',
+    'QueryCache',
+    'get_cache'
 ]
