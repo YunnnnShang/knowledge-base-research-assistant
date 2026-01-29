@@ -15,6 +15,9 @@ Prompt Engineering Best Practices:
 
 from typing import Dict, List, Optional
 
+# 常量定义
+MAX_CONTEXT_LENGTH = 4000  # 上下文最大长度（字符）
+
 
 class WorldClassPromptFramework:
     """
@@ -102,7 +105,7 @@ class McKinseyStylePrompts:
 {query}"""
 
         context_section = f"""【信息基础】
-{context[:4000]}"""
+{context[:MAX_CONTEXT_LENGTH]}"""
 
         thinking = """请按照以下McKinsey分析框架思考：
 
@@ -586,7 +589,7 @@ class EnhancedCoverageEvaluation:
 {query}
 
 【知识库内容】
-{context[:4000]}"""
+{context[:MAX_CONTEXT_LENGTH]}"""
 
         thinking = """请按照以下思维链进行评估：
 
@@ -958,13 +961,35 @@ def get_elite_prompt(
     
     Args:
         prompt_type: Prompt类型
+            - 'mckinsey_strategic': McKinsey式战略分析
+            - 'bcg_growth': BCG式成长策略
+            - 'gartner_tech': Gartner式技术评估
+            - 'academic_review': 学术研究式综述
+            - 'coverage_evaluation': 增强覆盖度评估
+            - 'world_class_synthesis': 世界级报告合成
         query: 查询/问题
         context: 上下文
         **kwargs: 其他参数
+            - query_type (str): 查询类型（仅world_class_synthesis需要）
+            - kb_weight (int): 知识库权重（仅world_class_synthesis需要）
+            - external_info (str): 外部信息（仅world_class_synthesis需要）
     
     Returns:
         完整的Prompt文本
+        
+    Raises:
+        ValueError: 如果prompt_type不支持或缺少必需参数
     """
+    
+    def _world_class_synthesis_wrapper(query, context, **kw):
+        """Wrapper for world_class_synthesis to handle kwargs properly"""
+        return EnhancedSynthesisPrompts.world_class_synthesis_prompt(
+            query=query,
+            query_type=kw.get('query_type', 'analytical'),
+            kb_context=context,
+            kb_weight=kw.get('kb_weight', 80),
+            external_info=kw.get('external_info')
+        )
     
     prompt_mapping = {
         # McKinsey式
@@ -982,20 +1007,24 @@ def get_elite_prompt(
         # 增强评估
         'coverage_evaluation': EnhancedCoverageEvaluation.advanced_coverage_prompt,
         
-        # 增强合成
-        'world_class_synthesis': lambda q, c, **kw: EnhancedSynthesisPrompts.world_class_synthesis_prompt(
-            query=q,
-            query_type=kw.get('query_type', 'analytical'),
-            kb_context=c,
-            kb_weight=kw.get('kb_weight', 80),
-            external_info=kw.get('external_info')
-        ),
+        # 增强合成（需要kwargs）
+        'world_class_synthesis': _world_class_synthesis_wrapper,
     }
     
     if prompt_type not in prompt_mapping:
-        raise ValueError(f"Unknown prompt type: {prompt_type}. Available: {list(prompt_mapping.keys())}")
+        raise ValueError(
+            f"Unknown prompt type: {prompt_type}. "
+            f"Available types: {list(prompt_mapping.keys())}"
+        )
     
-    return prompt_mapping[prompt_type](query, context, **kwargs)
+    prompt_func = prompt_mapping[prompt_type]
+    
+    # 对于需要kwargs的函数，传递kwargs
+    if prompt_type == 'world_class_synthesis':
+        return prompt_func(query, context, **kwargs)
+    else:
+        # 其他函数只接受query和context
+        return prompt_func(query, context)
 
 
 # 便捷函数

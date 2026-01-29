@@ -197,6 +197,33 @@ class TestGetElitePrompt:
                 context="test"
             )
     
+    def test_get_elite_prompt_world_class_synthesis(self):
+        """测试world_class_synthesis的kwargs处理"""
+        prompt = get_elite_prompt(
+            prompt_type='world_class_synthesis',
+            query="测试查询",
+            context="测试上下文",
+            query_type='analytical',
+            kb_weight=75,
+            external_info="外部信息"
+        )
+        
+        assert isinstance(prompt, str)
+        assert len(prompt) > 100
+        assert "analytical" in prompt or "分析" in prompt
+    
+    def test_get_elite_prompt_world_class_synthesis_defaults(self):
+        """测试world_class_synthesis使用默认kwargs"""
+        prompt = get_elite_prompt(
+            prompt_type='world_class_synthesis',
+            query="测试",
+            context="上下文"
+            # 不提供可选kwargs，应使用默认值
+        )
+        
+        assert isinstance(prompt, str)
+        assert len(prompt) > 100
+    
     def test_get_best_prompt_for_query_type(self):
         """测试根据查询类型获取最佳Prompt"""
         # 事实型
