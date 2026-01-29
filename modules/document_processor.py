@@ -10,9 +10,14 @@ import streamlit as st
 
 # 文档处理库
 try:
-    import PyPDF2
+    from pypdf import PdfReader  # 升级版PDF处理器
 except ImportError:
-    PyPDF2 = None
+    PdfReader = None
+
+try:
+    import pdfplumber  # 高级表格提取
+except ImportError:
+    pdfplumber = None
 
 try:
     from docx import Document
@@ -25,21 +30,47 @@ from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 def extract_text_from_pdf(file) -> str:
-    """从 PDF 文件提取文本"""
-    if PyPDF2 is None:
-        raise ImportError("请安装 PyPDF2: pip install PyPDF2")
+    """
+    从 PDF 文件提取文本（升级版：使用pypdf和pdfplumber）
+    优先使用pypdf，如果提取质量差则尝试pdfplumber
+    """
+    if PdfReader is None:
+        raise ImportError("请安装 pypdf: pip install pypdf")
     
     try:
-        pdf_reader = PyPDF2.PdfReader(file)
+        # 方法1: 使用pypdf快速提取
+        pdf_reader = PdfReader(file)
         text_parts = []
         
         for page_num, page in enumerate(pdf_reader.pages):
-            text = page.extract_text()
+            text = page.extract_text() or ""
             if text.strip():
-                text_parts.append(f"[Page {page_num + 1}]
-{text}")
+                text_parts.append(f"[Page {page_num + 1}]\n{text}")
         
-        return "\n\n".join(text_parts)
+        full_text = "\n\n".join(text_parts)
+        
+        # 如果提取结果太少，尝试pdfplumber（更精确，尤其对表格）
+        if len(full_text.strip()) < 100 and pdfplumber is not None:
+            file.seek(0)
+            with pdfplumber.open(file) as pdf:
+                plumber_parts = []
+                for page_num, page in enumerate(pdf.pages):
+                    text = page.extract_text() or ""
+                    if text.strip():
+                        plumber_parts.append(f"[Page {page_num + 1}]\n{text}")
+                    
+                    # 同时提取表格
+                    tables = page.extract_tables()
+                    if tables:
+                        for table_num, table in enumerate(tables):
+                            table_text = "\n".join(["\t".join(str(cell) or "" for cell in row) for row in table])
+                            plumber_parts.append(f"[Table {table_num + 1}]\n{table_text}")
+                
+                if plumber_parts:
+                    full_text = "\n\n".join(plumber_parts)
+        
+        return full_text
+        
     except Exception as e:
         raise Exception(f"PDF 处理错误: {str(e)}")
 
