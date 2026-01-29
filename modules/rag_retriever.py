@@ -155,7 +155,7 @@ def retrieve_from_knowledge_base(
         if use_query_expansion and api_key:
             expanded_queries = expand_query(query, api_key, num_queries=DEFAULT_NUM_EXPANDED_QUERIES)
             
-            for exp_query in expanded_queries[:DEFAULT_NUM_EXPANDED_QUERIES]:  # 限制扩展查询数量
+            for exp_query in expanded_queries:
                 retriever = vectorstore.as_retriever(
                     search_type="similarity_score_threshold",
                     search_kwargs={
@@ -293,7 +293,8 @@ def evaluate_coverage(
 
 覆盖度: [0-100的数字]
 需要外部补充: [是/否]
-信息缺口: [列出主要缺失的信息点，用分号分隔]
+信息缺口: [列出主要缺失的信息点，用分号分隔；如果没有明显缺口，填写"无"]
+置信度: [高/中/低]
 总结: [一句话概括]
 
 严格按照上述格式输出，不要添加其他内容。
