@@ -9,6 +9,10 @@ from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmb
 from .local_reranker import get_reranker
 from .query_cache import get_cache
 
+# 常量配置
+DEFAULT_NUM_EXPANDED_QUERIES = 2  # 默认扩展查询数量
+SIMILARITY_THRESHOLD_RELAXATION = 0.9  # 查询扩展时相似度阈值放宽系数
+
 
 def expand_query(query: str, api_key: str, num_queries: int = 3) -> List[str]:
     """
@@ -146,14 +150,14 @@ def retrieve_from_knowledge_base(
         
         # 策略2: 查询扩展 - 多角度检索
         if use_query_expansion and api_key:
-            expanded_queries = expand_query(query, api_key, num_queries=2)
+            expanded_queries = expand_query(query, api_key, num_queries=DEFAULT_NUM_EXPANDED_QUERIES)
             
-            for exp_query in expanded_queries[:2]:  # 限制扩展查询数量
+            for exp_query in expanded_queries[:DEFAULT_NUM_EXPANDED_QUERIES]:  # 限制扩展查询数量
                 retriever = vectorstore.as_retriever(
                     search_type="similarity_score_threshold",
                     search_kwargs={
                         "k": k,
-                        "score_threshold": similarity_threshold * 0.9  # 稍微放宽阈值
+                        "score_threshold": similarity_threshold * SIMILARITY_THRESHOLD_RELAXATION  # 稍微放宽阈值
                     }
                 )
                 docs = retriever.invoke(exp_query)
@@ -306,7 +310,7 @@ def evaluate_coverage(
                 try:
                     coverage = int(''.join(filter(str.isdigit, line)))
                     coverage = max(0, min(100, coverage))
-                except:
+                except (ValueError, TypeError):
                     pass
             elif line.startswith('需要外部补充:') or line.startswith('需要外部补充：'):
                 needs_external = '是' in line

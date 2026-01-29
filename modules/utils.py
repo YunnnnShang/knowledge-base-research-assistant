@@ -84,7 +84,7 @@ def wait_for_interaction_completion(
         progress_bar.empty()
         status_text.empty()
         return interaction
-    except:
+    except Exception as e:
         progress_bar.empty()
         status_text.empty()
         return None

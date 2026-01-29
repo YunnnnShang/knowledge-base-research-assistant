@@ -11,7 +11,6 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from google import genai
 
 from .rag_retriever import retrieve_from_knowledge_base
-from .local_reranker import get_reranker
 from .utils import wait_for_interaction_completion
 from .elite_prompts import get_elite_prompt
 
@@ -34,7 +33,6 @@ class AdvancedResearchEngine:
             api_key: Google API Key
         """
         self.api_key = api_key
-        self.reranker = None
         
     def _get_query_type(self, query: str) -> str:
         """
@@ -109,7 +107,7 @@ class AdvancedResearchEngine:
                     try:
                         coverage = int(''.join(filter(str.isdigit, line)))
                         coverage = max(0, min(100, coverage))
-                    except:
+                    except (ValueError, TypeError):
                         pass
                 elif line.startswith('需要外部补充:') or line.startswith('需要外部补充：'):
                     needs_external = '是' in line
